@@ -12,6 +12,7 @@ export interface RecruiterDocument extends mongoose.Document {
   commision?: number;
   YohoId?: string;
   rechargeStatus?: Status;
+  commissionEarned?: number;
 }
 
 export enum Status {
@@ -33,6 +34,7 @@ export const RecruiterSchema = new mongoose.Schema(
     commision: { type: Number, required: true }, // will be add at the time of comission
     YohoId: { type: String, required: false },
     rechargeStatus: { type: String, enum: Object.values(Status) },
+    commissionEarned: { type: Number, required: false, default: 0 },
   },
   { timestamps: true }
 );

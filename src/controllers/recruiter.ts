@@ -81,7 +81,9 @@ const login = async (req: Request, res: Response) => {
         .json({ success: false, message: "Invalid password" });
     }
 
-    return res.status(200).json({ success: true, message: "Login successful" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Login successful", data: Recruiter });
   } catch (error) {
     console.error("Error in user login:", error);
     handleMongoError(error, res);
@@ -150,6 +152,7 @@ const softDeletedRecruiter = async (req: Request, res: Response) => {
     handleMongoError(error, res);
   }
 };
+
 const deactivatedRecruiter = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -179,6 +182,7 @@ const deactivatedRecruiter = async (req: Request, res: Response) => {
     handleMongoError(error, res);
   }
 };
+
 const changePassword = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -295,6 +299,41 @@ const recharge = async (req: Request, res: Response) => {
   }
 };
 
+const sellRecharge = async (req: Request, res: Response) => {
+  try {
+    // recruiter id
+    const { YohoId, coin, id, fullName } = req.body;
+    const recruiter = await RecruiterModel.findById(id);
+
+    if (!recruiter) {
+      return res.status(404).json({
+        success: false,
+        message: "Recruiter not found.",
+      });
+    }
+    const addHistory = new HistoryModel({
+      recruiterID: recruiter._id,
+      purchaseType: PurchaseType.SELL,
+      status: Status.PENDING,
+      coin: coin,
+      YohoId,
+      fullName,
+      // adminID: adminID,
+    });
+    recruiter.rechargeStatus = Status.PENDING;
+
+    await addHistory.save();
+    await recruiter.save();
+    return res.status(200).json({
+      success: true,
+      message: "Recharge sell successfully, wait for approval",
+    });
+  } catch (error) {
+    console.error("Error in rechargeUser controller:", error);
+    handleMongoError(error, res);
+  }
+};
+
 export const reCruiterController = {
   register,
   login,
@@ -305,4 +344,5 @@ export const reCruiterController = {
   changePassword,
   deactivatedRecruiter,
   recharge,
+  sellRecharge,
 };

@@ -42,9 +42,10 @@ exports.HistorySchema = new mongoose_1.default.Schema({
         required: true,
         ref: "Recruiter",
     },
+    fullName: { type: String },
     adminID: {
         type: mongoose_1.Schema.Types.ObjectId,
-        required: true,
+        required: false,
         ref: "SuperAdmin",
     },
     purchaseType: {

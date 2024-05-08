@@ -100,7 +100,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 .status(401)
                 .json({ success: false, message: "Invalid password" });
         }
-        return res.status(200).json({ success: true, message: "Login successful" });
+        return res
+            .status(200)
+            .json({ success: true, message: "Login successful", data: Recruiter });
     }
     catch (error) {
         console.error("Error in user login:", error);
@@ -299,6 +301,39 @@ const recharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         (0, handleMongoError_1.handleMongoError)(error, res);
     }
 });
+const sellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // recruiter id
+        const { YohoId, coin, id, fullName } = req.body;
+        const recruiter = yield Recruiter_1.default.findById(id);
+        if (!recruiter) {
+            return res.status(404).json({
+                success: false,
+                message: "Recruiter not found.",
+            });
+        }
+        const addHistory = new History_1.default({
+            recruiterID: recruiter._id,
+            purchaseType: History_1.PurchaseType.SELL,
+            status: History_1.Status.PENDING,
+            coin: coin,
+            YohoId,
+            fullName,
+            // adminID: adminID,
+        });
+        recruiter.rechargeStatus = History_1.Status.PENDING;
+        yield addHistory.save();
+        yield recruiter.save();
+        return res.status(200).json({
+            success: true,
+            message: "Recharge sell successfully, wait for approval",
+        });
+    }
+    catch (error) {
+        console.error("Error in rechargeUser controller:", error);
+        (0, handleMongoError_1.handleMongoError)(error, res);
+    }
+});
 exports.reCruiterController = {
     register,
     login,
@@ -309,4 +344,5 @@ exports.reCruiterController = {
     changePassword,
     deactivatedRecruiter,
     recharge,
+    sellRecharge,
 };

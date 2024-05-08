@@ -3,7 +3,7 @@ import express from "express";
 import { authenticateToken } from "../middleware/auth.middleware";
 const router = express.Router();
 
-router.get("/", authenticateToken, historyController.getHistory);
+router.get("/", historyController.getHistory);
 router.patch(
   "/approve/:id",
   authenticateToken,

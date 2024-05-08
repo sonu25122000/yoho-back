@@ -13,11 +13,12 @@ export enum Status {
 
 export interface HistoryDocument extends mongoose.Document {
   recruiterID: mongoose.Types.ObjectId;
-  adminID: mongoose.Types.ObjectId;
+  adminID?: mongoose.Types.ObjectId;
   purchaseType?: PurchaseType;
   status: Status;
   coin: number;
   YohoId: string;
+  fullName: string;
 }
 
 export const HistorySchema = new mongoose.Schema(
@@ -27,9 +28,10 @@ export const HistorySchema = new mongoose.Schema(
       required: true,
       ref: "Recruiter",
     },
+    fullName: { type: String },
     adminID: {
       type: Schema.Types.ObjectId,
-      required: true,
+      required: false,
       ref: "SuperAdmin",
     },
     purchaseType: {

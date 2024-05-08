@@ -8,17 +8,20 @@ import {
 
 const router = express.Router();
 router.get("/", authenticateToken, reCruiterController.getAllRecruiter);
-router.get("/:id", authenticateToken, reCruiterController.getRecruiterById);
+router.get("/:id", reCruiterController.getRecruiterById);
+router.post("/sellRecharge", reCruiterController.sellRecharge);
+
 router.post(
   "/register",
   validateRecruiterDetails,
   authenticateToken,
   reCruiterController.register
 );
+
 router.post(
   "/login",
-  authenticateToken,
-  authenticateToken,
+  // authenticateToken,
+  // authenticateToken,
   reCruiterController.login
 );
 router.patch("/:id", authenticateToken, reCruiterController.updateRecruiter);
@@ -39,5 +42,4 @@ router.delete(
   reCruiterController.softDeletedRecruiter
 );
 router.patch("/recharge/:id", reCruiterController.recharge);
-
 export default router;

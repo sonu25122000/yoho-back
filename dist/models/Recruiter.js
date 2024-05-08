@@ -23,6 +23,7 @@ exports.RecruiterSchema = new mongoose_1.default.Schema({
     commision: { type: Number, required: true }, // will be add at the time of comission
     YohoId: { type: String, required: false },
     rechargeStatus: { type: String, enum: Object.values(Status) },
+    commissionEarned: { type: Number, required: false, default: 0 },
 }, { timestamps: true });
 const RecruiterModel = mongoose_1.default.model("Recruiter", exports.RecruiterSchema);
 exports.default = RecruiterModel;
