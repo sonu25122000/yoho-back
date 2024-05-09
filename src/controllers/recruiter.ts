@@ -334,6 +334,43 @@ const sellRecharge = async (req: Request, res: Response) => {
   }
 };
 
+const withDrawCommission = async (req:Request,res:Response) => {
+  try {
+    const {id} = req.params
+    const {amountToWithDraw} = req.body
+    if(!isValidObjectId(id)){
+      return res.status(400).json({
+        success:false,
+        message:"Provided Id is not valid."
+      })
+    }
+    const recruiter = await RecruiterModel.findById(id)
+    if(!recruiter){
+      return res.status(404).json({
+        success:false,
+        message:"Recruiter Not Found."
+      })
+    }
+    if(amountToWithDraw > recruiter.commision){
+      return res.status(400).json({
+        success:false,
+        message:"Insufficient amount to withDraw."
+      })
+    }
+    recruiter.commision -= amountToWithDraw;
+    recruiter.coin += amountToWithDraw
+    await recruiter.save()
+    return res.status(200).json({
+      success:true,
+      message:"Commission WithDraw Successfully.",
+      data:recruiter
+    })
+  } catch (error) {
+    console.log("Error while withdraw the commsion",error)
+    handleMongoError(error,res)
+  }
+}
+
 export const reCruiterController = {
   register,
   login,
@@ -345,4 +382,5 @@ export const reCruiterController = {
   deactivatedRecruiter,
   recharge,
   sellRecharge,
+  withDrawCommission
 };

@@ -42,4 +42,5 @@ router.delete(
   reCruiterController.softDeletedRecruiter
 );
 router.patch("/recharge/:id", reCruiterController.recharge);
+router.patch("/withdrawCommission/:id",reCruiterController.withDrawCommission)
 export default router;
