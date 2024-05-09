@@ -14,5 +14,7 @@ router.patch(
   authenticateToken,
   historyController.rejectRecharge
 );
+router.patch("/approveSellRecharge/:id",authenticateToken,historyController.approveSellRecharge)
+router.patch("/rejectSellRecharge/:id",authenticateToken,historyController.rejectSellRecharge)
 
 export default router;

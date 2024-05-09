@@ -9,7 +9,7 @@ export interface RecruiterDocument extends mongoose.Document {
   isDeactivated?: boolean;
   isDeleted?: boolean;
   coin?: number;
-  commision?: number;
+  commision: number;
   YohoId?: string;
   rechargeStatus?: Status;
   commissionEarned?: number;
