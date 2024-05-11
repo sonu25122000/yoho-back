@@ -8,11 +8,11 @@ export interface RecruiterDocument extends mongoose.Document {
   phoneNumber: number;
   isDeactivated?: boolean;
   isDeleted?: boolean;
-  coin?: number;
+  coin: number;
   commision: number;
-  YohoId?: string;
   rechargeStatus?: Status;
-  commissionEarned?: number;
+  totalCommissionEarned: number;
+  unlockCommission: number;
 }
 
 export enum Status {
@@ -32,9 +32,9 @@ export const RecruiterSchema = new mongoose.Schema(
     isDeleted: { type: Boolean, default: false },
     coin: { type: Number, default: 0 },
     commision: { type: Number, required: true }, // will be add at the time of comission
-    YohoId: { type: String, required: false },
     rechargeStatus: { type: String, enum: Object.values(Status) },
-    commissionEarned: { type: Number, required: false, default: 0 },
+    totalCommissionEarned: { type: Number, required: false, default: 0 },
+    unlockCommission: { type: Number, required: false, default: 0 },
   },
   { timestamps: true }
 );

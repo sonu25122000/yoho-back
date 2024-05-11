@@ -31,6 +31,7 @@ const getHistory = async (req: Request, res: Response) => {
   }
 };
 
+// buy request approve
 const approvRecharge = async (req: Request, res: Response) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -44,6 +45,7 @@ const approvRecharge = async (req: Request, res: Response) => {
         message: "Either admin id or recruiter id not valid.",
       });
     }
+
     const history = await HistoryModel.findById(id).session(session);
     if (!history) {
       return res
@@ -66,6 +68,9 @@ const approvRecharge = async (req: Request, res: Response) => {
         .json({ success: false, error: "recruiter not found" });
     }
 
+    // commission earned by recruiter
+    const totalCoinEarned = (coin * recruiter.commision) / 100;
+
     // Update admin's coin balance
     admin.coin -= coin;
 
@@ -80,7 +85,11 @@ const approvRecharge = async (req: Request, res: Response) => {
 
     // Update user's coin balance
     recruiter.coin += coin;
+
+    // added commssion earned coin in total commsion for recruiter
+    recruiter.totalCommissionEarned += totalCoinEarned;
     history.status = Status.APPROVED;
+
     // Save changes to admin and user
     await admin.save();
     await recruiter.save();
@@ -97,9 +106,7 @@ const approvRecharge = async (req: Request, res: Response) => {
     console.error("Error in rechargeUser controller:", error);
     await session.abortTransaction();
     session.endSession();
-    return res
-      .status(500)
-      .json({ success: false, error: "Internal server error" });
+    handleMongoError(error, res);
   }
 };
 
@@ -146,13 +153,12 @@ const rejectRecharge = async (req: Request, res: Response) => {
   }
 };
 
-
 const approveSellRecharge = async (req: Request, res: Response) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
     // history id
-    const { id } = req.params; 
+    const { id } = req.params;
     const { coin, recruiterID } = req.body;
     if (!isValidObjectId(recruiterID)) {
       return res.status(400).json({
@@ -167,7 +173,6 @@ const approveSellRecharge = async (req: Request, res: Response) => {
         .json({ success: false, error: "history not found" });
     }
     // Fetch the admin from the database
-   
 
     // Fetch the user from the database
     const recruiter = await RecruiterModel.findById(recruiterID).session(
@@ -182,19 +187,20 @@ const approveSellRecharge = async (req: Request, res: Response) => {
     if (recruiter.coin && (recruiter.coin < 0 || recruiter.coin < coin)) {
       await session.abortTransaction();
       session.endSession();
-      return res
-        .status(400)
-        .json({ success: false, error: "Insufficient coins in Recruiter account" });
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient coins in Recruiter account",
+      });
     }
-
-    if(recruiter.coin){
-      recruiter.coin -= coin;
-      const commision = (+coin * recruiter.commision )/100;
-      recruiter.commision += commision
-    }
+    // if (recruiter.coin) {
+    recruiter.coin -= coin;
+    const commision = (+coin * recruiter.commision) / 100;
+    recruiter.unlockCommission += commision;
+    // }
 
     // Update user's coin balance
     history.status = Status.APPROVED;
+    recruiter.rechargeStatus = Status.APPROVED;
     await recruiter.save();
     await history.save();
 
@@ -258,12 +264,89 @@ const rejectSellRecharge = async (req: Request, res: Response) => {
   }
 };
 
+const getTodaysSell = async (req: Request, res: Response) => {
+  try {
+    // Get today's date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to 0 for comparison
+
+    // Get midnight of the next day to include purchases made up until end of today
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Find all documents where purchaseType is "buy" and created today
+    const totalCoin = await HistoryModel.find({
+      purchaseType: PurchaseType.BUY,
+      status: Status.APPROVED,
+      createdAt: {
+        $gte: today,
+        $lt: tomorrow,
+      },
+    });
+
+    // Calculate total coin
+    let total = 0;
+    totalCoin.forEach((item) => {
+      total += item.coin;
+    });
+
+    // Return totalCoin
+    res.json({ success: true, message: "Today's Sell Coin", data: total });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getMonthlySell = async (req: Request, res: Response) => {
+  try {
+    const currentMonth = new Date().getMonth() + 1; // Get current month
+    const currentYear = new Date().getFullYear(); // Get current year
+
+    const result = await HistoryModel.aggregate([
+      {
+        $match: {
+          purchaseType: PurchaseType.BUY,
+          status: Status.APPROVED,
+          $expr: {
+            $and: [
+              { $eq: [{ $month: "$createdAt" }, currentMonth] },
+              { $eq: [{ $year: "$createdAt" }, currentYear] },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalCoinSellValue: { $sum: "$coin" },
+        },
+      },
+    ]);
+
+    if (result.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No data found for the current month" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "monthly sell data",
+      data: result[0].totalCoinSellValue,
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const historyController = {
   getHistory,
   approvRecharge,
   rejectRecharge,
   approveSellRecharge,
-  rejectSellRecharge
+  rejectSellRecharge,
+  getTodaysSell,
+  getMonthlySell,
 };
-
-

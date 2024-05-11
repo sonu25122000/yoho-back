@@ -137,9 +137,24 @@ const getSuperAdminById = (req, res) => __awaiter(void 0, void 0, void 0, functi
         (0, handleMongoError_1.handleMongoError)(error, res);
     }
 });
+const getAllSuperAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const superAdmin = yield SuperAdmin_1.default.find();
+        return res.status(200).json({
+            success: true,
+            message: "SuperAdmin Details",
+            data: superAdmin,
+        });
+    }
+    catch (error) {
+        console.log(error);
+        (0, handleMongoError_1.handleMongoError)(error, res);
+    }
+});
 exports.superAdminController = {
     register,
     login,
     rechargeCoin,
     getSuperAdminById,
+    getAllSuperAdmin,
 };

@@ -4,6 +4,9 @@ import { authenticateToken } from "../middleware/auth.middleware";
 const router = express.Router();
 
 router.get("/", historyController.getHistory);
+router.get("/today-sell", authenticateToken, historyController.getTodaysSell);
+router.get("/monthly-sell", historyController.getMonthlySell);
+
 router.patch(
   "/approve/:id",
   authenticateToken,
@@ -14,7 +17,15 @@ router.patch(
   authenticateToken,
   historyController.rejectRecharge
 );
-router.patch("/approveSellRecharge/:id",authenticateToken,historyController.approveSellRecharge)
-router.patch("/rejectSellRecharge/:id",authenticateToken,historyController.rejectSellRecharge)
+router.patch(
+  "/approveSellRecharge/:id",
+  authenticateToken,
+  historyController.approveSellRecharge
+);
+router.patch(
+  "/rejectSellRecharge/:id",
+  authenticateToken,
+  historyController.rejectSellRecharge
+);
 
 export default router;

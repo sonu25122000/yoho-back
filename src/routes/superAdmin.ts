@@ -13,5 +13,6 @@ router.patch(
   authenticateToken,
   superAdminController.rechargeCoin
 );
+router.get("/", superAdminController.getAllSuperAdmin);
 router.get("/:id", superAdminController.getSuperAdminById);
 export default router;

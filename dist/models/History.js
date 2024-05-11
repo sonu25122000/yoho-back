@@ -58,6 +58,8 @@ exports.HistorySchema = new mongoose_1.default.Schema({
         enum: Object.values(Status),
     },
     YohoId: { type: String },
+    amount: { type: Number, required: false },
+    phoneNumber: { type: Number, required: false },
 }, { timestamps: true, versionKey: false });
 const HistoryModel = mongoose_1.default.model("History", exports.HistorySchema);
 exports.default = HistoryModel;

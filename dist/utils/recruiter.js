@@ -41,13 +41,10 @@ const validateRecruiterDetails = (req, res, next) => {
             "string.max": "Password cannot be longer than 50 characters",
             "any.required": "Password is required.",
         }),
-        commision: joi_1.default.number().integer().positive().required().messages({
-            "number.base": "commision must be a number",
-            "number.integer": "commision must be an integer",
+        commision: joi_1.default.number().positive().required().messages({
             "number.positive": "commision must be a positive integer",
             "any.required": "commision is required",
         }),
-        YohoId: joi_1.default.string().optional(),
     });
     const validationResult = RecruiterSchema.validate(req.body);
     if (validationResult.error) {

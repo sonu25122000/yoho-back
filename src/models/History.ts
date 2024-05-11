@@ -4,21 +4,21 @@ export enum PurchaseType {
   SELL = "sell",
   BUY = "buy",
 }
-
 export enum Status {
   APPROVED = "approved",
   PENDING = "pending",
   RJECTED = "rejected",
 }
-
 export interface HistoryDocument extends mongoose.Document {
   recruiterID: mongoose.Types.ObjectId;
   adminID?: mongoose.Types.ObjectId;
   purchaseType?: PurchaseType;
   status: Status;
   coin: number;
-  YohoId: string;
+  YohoId?: string;
   fullName: string;
+  phoneNumber: number;
+  amount: number;
 }
 
 export const HistorySchema = new mongoose.Schema(
@@ -44,6 +44,8 @@ export const HistorySchema = new mongoose.Schema(
       enum: Object.values(Status),
     },
     YohoId: { type: String },
+    amount: { type: Number, required: false },
+    phoneNumber: { type: Number, required: false },
   },
   { timestamps: true, versionKey: false }
 );

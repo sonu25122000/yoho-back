@@ -67,6 +67,7 @@ const getHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         (0, handleMongoError_1.handleMongoError)(error, res);
     }
 });
+// buy request approve
 const approvRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
@@ -98,6 +99,8 @@ const approvRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 .status(404)
                 .json({ success: false, error: "recruiter not found" });
         }
+        // commission earned by recruiter
+        const totalCoinEarned = (coin * recruiter.commision) / 100;
         // Update admin's coin balance
         admin.coin -= coin;
         // Validate admin's updated coin balance
@@ -110,6 +113,8 @@ const approvRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         // Update user's coin balance
         recruiter.coin += coin;
+        // added commssion earned coin in total commsion for recruiter
+        recruiter.totalCommissionEarned += totalCoinEarned;
         history.status = History_1.Status.APPROVED;
         // Save changes to admin and user
         yield admin.save();
@@ -126,9 +131,7 @@ const approvRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function*
         console.error("Error in rechargeUser controller:", error);
         yield session.abortTransaction();
         session.endSession();
-        return res
-            .status(500)
-            .json({ success: false, error: "Internal server error" });
+        (0, handleMongoError_1.handleMongoError)(error, res);
     }
 });
 const rejectRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -170,8 +173,183 @@ const rejectRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function*
         (0, handleMongoError_1.handleMongoError)(error, res);
     }
 });
+const approveSellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        // history id
+        const { id } = req.params;
+        const { coin, recruiterID } = req.body;
+        if (!(0, mongoose_1.isValidObjectId)(recruiterID)) {
+            return res.status(400).json({
+                success: false,
+                message: "Recruiter id not valid.",
+            });
+        }
+        const history = yield History_1.default.findById(id).session(session);
+        if (!history) {
+            return res
+                .status(404)
+                .json({ success: false, error: "history not found" });
+        }
+        // Fetch the admin from the database
+        // Fetch the user from the database
+        const recruiter = yield Recruiter_1.default.findById(recruiterID).session(session);
+        if (!recruiter) {
+            return res
+                .status(404)
+                .json({ success: false, error: "recruiter not found" });
+        }
+        // Validate admin's updated coin balance
+        if (recruiter.coin && (recruiter.coin < 0 || recruiter.coin < coin)) {
+            yield session.abortTransaction();
+            session.endSession();
+            return res.status(400).json({
+                success: false,
+                message: "Insufficient coins in Recruiter account",
+            });
+        }
+        // if (recruiter.coin) {
+        recruiter.coin -= coin;
+        const commision = (+coin * recruiter.commision) / 100;
+        recruiter.unlockCommission += commision;
+        // }
+        // Update user's coin balance
+        history.status = History_1.Status.APPROVED;
+        recruiter.rechargeStatus = History_1.Status.APPROVED;
+        yield recruiter.save();
+        yield history.save();
+        yield session.commitTransaction();
+        session.endSession();
+        return res.status(200).json({
+            success: true,
+            message: "Sell Recharged Requested Approved.",
+        });
+    }
+    catch (error) {
+        console.error("Error in sell rechargeUser controller:", error);
+        yield session.abortTransaction();
+        session.endSession();
+        return res
+            .status(500)
+            .json({ success: false, error: "Internal server error" });
+    }
+});
+const rejectSellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // history id
+        const { id } = req.params;
+        const { recruiterID } = req.body;
+        if (!(0, mongoose_1.isValidObjectId)(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "history id not valid.",
+            });
+        }
+        const history = yield History_1.default.findById(id);
+        if (!history) {
+            return res
+                .status(404)
+                .json({ success: false, error: "history not found" });
+        }
+        // Fetch the user from the database
+        const recruiter = yield Recruiter_1.default.findById(recruiterID);
+        if (!recruiter) {
+            return res
+                .status(404)
+                .json({ success: false, error: "recruiter not found" });
+        }
+        history.status = History_1.Status.RJECTED;
+        recruiter.rechargeStatus = History_1.Status.RJECTED;
+        // Save changes to admin and user
+        yield recruiter.save();
+        yield history.save();
+        return res.status(200).json({
+            success: true,
+            message: "Recharged Requested Rejected",
+        });
+    }
+    catch (error) {
+        console.error("Error in rechargeUser controller:", error);
+        (0, handleMongoError_1.handleMongoError)(error, res);
+    }
+});
+const getTodaysSell = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Get today's date
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to 0 for comparison
+        // Get midnight of the next day to include purchases made up until end of today
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        // Find all documents where purchaseType is "buy" and created today
+        const totalCoin = yield History_1.default.find({
+            purchaseType: History_1.PurchaseType.BUY,
+            status: History_1.Status.APPROVED,
+            createdAt: {
+                $gte: today,
+                $lt: tomorrow,
+            },
+        });
+        // Calculate total coin
+        let total = 0;
+        totalCoin.forEach((item) => {
+            total += item.coin;
+        });
+        // Return totalCoin
+        res.json({ success: true, message: "Today's Sell Coin", data: total });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+const getMonthlySell = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const currentMonth = new Date().getMonth() + 1; // Get current month
+        const currentYear = new Date().getFullYear(); // Get current year
+        const result = yield History_1.default.aggregate([
+            {
+                $match: {
+                    purchaseType: History_1.PurchaseType.BUY,
+                    status: History_1.Status.APPROVED,
+                    $expr: {
+                        $and: [
+                            { $eq: [{ $month: "$createdAt" }, currentMonth] },
+                            { $eq: [{ $year: "$createdAt" }, currentYear] },
+                        ],
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalCoinSellValue: { $sum: "$coin" },
+                },
+            },
+        ]);
+        if (result.length === 0) {
+            return res
+                .status(404)
+                .json({ message: "No data found for the current month" });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "monthly sell data",
+            data: result[0].totalCoinSellValue,
+        });
+    }
+    catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 exports.historyController = {
     getHistory,
     approvRecharge,
     rejectRecharge,
+    approveSellRecharge,
+    rejectSellRecharge,
+    getTodaysSell,
+    getMonthlySell,
 };

@@ -42,9 +42,10 @@ const jwtSecret_1 = require("../service/jwtSecret");
 const handleMongoError_1 = require("../utils/handleMongoError");
 const mongoose_1 = require("mongoose");
 const History_1 = __importStar(require("../models/History"));
+const coinJson_1 = require("../utils/coinJson");
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // Handle Recruiter registration
-    const { firstName, lastName, email, password, YohoId, phoneNumber, commision, } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, commision } = req.body;
     try {
         // Check if Recruiter already exists
         const existingRecruiter = yield Recruiter_1.default.findOne({ phoneNumber });
@@ -64,7 +65,6 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             password: hashedPassword,
             phoneNumber,
             commision,
-            YohoId,
         });
         yield newRecruiter.save();
         return res
@@ -272,7 +272,8 @@ const recharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // recruiter id
         const { id } = req.params;
-        const { adminID, YohoId, coin } = req.body;
+        const { adminID, coin, phoneNumber } = req.body;
+        const amount = coinJson_1.CoinValue * coin;
         const recruiter = yield Recruiter_1.default.findById(id);
         if (!recruiter) {
             return res.status(404).json({
@@ -285,7 +286,8 @@ const recharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             purchaseType: History_1.PurchaseType.BUY,
             status: History_1.Status.PENDING,
             coin: coin,
-            YohoId,
+            phoneNumber,
+            amount: amount.toFixed(2),
             adminID: adminID,
         });
         recruiter.rechargeStatus = History_1.Status.PENDING;
@@ -304,7 +306,7 @@ const recharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 const sellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // recruiter id
-        const { YohoId, coin, id, fullName } = req.body;
+        const { YohoId, coin, id, fullName, phoneNumber } = req.body;
         const recruiter = yield Recruiter_1.default.findById(id);
         if (!recruiter) {
             return res.status(404).json({
@@ -319,7 +321,8 @@ const sellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             coin: coin,
             YohoId,
             fullName,
-            // adminID: adminID,
+            amount: (coinJson_1.CoinValue * coin).toFixed(2),
+            phoneNumber,
         });
         recruiter.rechargeStatus = History_1.Status.PENDING;
         yield addHistory.save();
@@ -334,6 +337,43 @@ const sellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         (0, handleMongoError_1.handleMongoError)(error, res);
     }
 });
+const withDrawCommission = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const { amountToWithDraw } = req.body;
+        if (!(0, mongoose_1.isValidObjectId)(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Provided Id is not valid.",
+            });
+        }
+        const recruiter = yield Recruiter_1.default.findById(id);
+        if (!recruiter) {
+            return res.status(404).json({
+                success: false,
+                message: "Recruiter Not Found.",
+            });
+        }
+        if (amountToWithDraw > recruiter.commision) {
+            return res.status(400).json({
+                success: false,
+                message: "Insufficient amount to withDraw.",
+            });
+        }
+        recruiter.commision -= amountToWithDraw;
+        recruiter.coin += amountToWithDraw;
+        yield recruiter.save();
+        return res.status(200).json({
+            success: true,
+            message: "Commission WithDraw Successfully.",
+            data: recruiter,
+        });
+    }
+    catch (error) {
+        console.log("Error while withdraw the commsion", error);
+        (0, handleMongoError_1.handleMongoError)(error, res);
+    }
+});
 exports.reCruiterController = {
     register,
     login,
@@ -345,4 +385,5 @@ exports.reCruiterController = {
     deactivatedRecruiter,
     recharge,
     sellRecharge,
+    withDrawCommission,
 };

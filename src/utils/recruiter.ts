@@ -42,13 +42,10 @@ export const validateRecruiterDetails = (
       "any.required": "Password is required.",
     }),
 
-    commision: Joi.number().integer().positive().required().messages({
-      "number.base": "commision must be a number",
-      "number.integer": "commision must be an integer",
+    commision: Joi.number().positive().required().messages({
       "number.positive": "commision must be a positive integer",
       "any.required": "commision is required",
     }),
-    YohoId: Joi.string().optional(),
   });
 
   const validationResult = RecruiterSchema.validate(req.body);

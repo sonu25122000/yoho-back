@@ -8,8 +8,9 @@ import {
 
 const router = express.Router();
 router.get("/", authenticateToken, reCruiterController.getAllRecruiter);
-router.get("/:id", reCruiterController.getRecruiterById);
 router.post("/sellRecharge", reCruiterController.sellRecharge);
+
+router.get("/:id", reCruiterController.getRecruiterById);
 
 router.post(
   "/register",
@@ -42,5 +43,5 @@ router.delete(
   reCruiterController.softDeletedRecruiter
 );
 router.patch("/recharge/:id", reCruiterController.recharge);
-router.patch("/withdrawCommission/:id",reCruiterController.withDrawCommission)
+router.patch("/withdrawCommission/:id", reCruiterController.withDrawCommission);
 export default router;

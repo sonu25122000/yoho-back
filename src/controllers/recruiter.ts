@@ -7,18 +7,12 @@ import { generateToken } from "../service/jwtService";
 import mongoose, { isValidObjectId } from "mongoose";
 import SuperAdminModel from "../models/SuperAdmin";
 import HistoryModel, { PurchaseType, Status } from "../models/History";
+import { CoinValue } from "../utils/coinJson";
 
 const register = async (req: Request, res: Response) => {
   // Handle Recruiter registration
-  const {
-    firstName,
-    lastName,
-    email,
-    password,
-    YohoId,
-    phoneNumber,
-    commision,
-  } = req.body;
+  const { firstName, lastName, email, password, phoneNumber, commision } =
+    req.body;
 
   try {
     // Check if Recruiter already exists
@@ -41,7 +35,6 @@ const register = async (req: Request, res: Response) => {
       password: hashedPassword,
       phoneNumber,
       commision,
-      YohoId,
     });
 
     await newRecruiter.save();
@@ -268,7 +261,8 @@ const recharge = async (req: Request, res: Response) => {
   try {
     // recruiter id
     const { id } = req.params;
-    const { adminID, YohoId, coin } = req.body;
+    const { adminID, coin, phoneNumber } = req.body;
+    const amount = CoinValue * coin;
     const recruiter = await RecruiterModel.findById(id);
 
     if (!recruiter) {
@@ -282,7 +276,8 @@ const recharge = async (req: Request, res: Response) => {
       purchaseType: PurchaseType.BUY,
       status: Status.PENDING,
       coin: coin,
-      YohoId,
+      phoneNumber,
+      amount: amount.toFixed(2),
       adminID: adminID,
     });
     recruiter.rechargeStatus = Status.PENDING;
@@ -302,7 +297,7 @@ const recharge = async (req: Request, res: Response) => {
 const sellRecharge = async (req: Request, res: Response) => {
   try {
     // recruiter id
-    const { YohoId, coin, id, fullName } = req.body;
+    const { YohoId, coin, id, fullName, phoneNumber } = req.body;
     const recruiter = await RecruiterModel.findById(id);
 
     if (!recruiter) {
@@ -318,7 +313,8 @@ const sellRecharge = async (req: Request, res: Response) => {
       coin: coin,
       YohoId,
       fullName,
-      // adminID: adminID,
+      amount: (CoinValue * coin).toFixed(2),
+      phoneNumber,
     });
     recruiter.rechargeStatus = Status.PENDING;
 
@@ -334,42 +330,42 @@ const sellRecharge = async (req: Request, res: Response) => {
   }
 };
 
-const withDrawCommission = async (req:Request,res:Response) => {
+const withDrawCommission = async (req: Request, res: Response) => {
   try {
-    const {id} = req.params
-    const {amountToWithDraw} = req.body
-    if(!isValidObjectId(id)){
+    const { id } = req.params;
+    const { amountToWithDraw } = req.body;
+    if (!isValidObjectId(id)) {
       return res.status(400).json({
-        success:false,
-        message:"Provided Id is not valid."
-      })
+        success: false,
+        message: "Provided Id is not valid.",
+      });
     }
-    const recruiter = await RecruiterModel.findById(id)
-    if(!recruiter){
+    const recruiter = await RecruiterModel.findById(id);
+    if (!recruiter) {
       return res.status(404).json({
-        success:false,
-        message:"Recruiter Not Found."
-      })
+        success: false,
+        message: "Recruiter Not Found.",
+      });
     }
-    if(amountToWithDraw > recruiter.commision){
+    if (amountToWithDraw > recruiter.commision) {
       return res.status(400).json({
-        success:false,
-        message:"Insufficient amount to withDraw."
-      })
+        success: false,
+        message: "Insufficient amount to withDraw.",
+      });
     }
     recruiter.commision -= amountToWithDraw;
-    recruiter.coin += amountToWithDraw
-    await recruiter.save()
+    recruiter.coin += amountToWithDraw;
+    await recruiter.save();
     return res.status(200).json({
-      success:true,
-      message:"Commission WithDraw Successfully.",
-      data:recruiter
-    })
+      success: true,
+      message: "Commission WithDraw Successfully.",
+      data: recruiter,
+    });
   } catch (error) {
-    console.log("Error while withdraw the commsion",error)
-    handleMongoError(error,res)
+    console.log("Error while withdraw the commsion", error);
+    handleMongoError(error, res);
   }
-}
+};
 
 export const reCruiterController = {
   register,
@@ -382,5 +378,5 @@ export const reCruiterController = {
   deactivatedRecruiter,
   recharge,
   sellRecharge,
-  withDrawCommission
+  withDrawCommission,
 };

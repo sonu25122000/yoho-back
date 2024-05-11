@@ -136,10 +136,23 @@ const getSuperAdminById = async (req: Request, res: Response) => {
     handleMongoError(error, res);
   }
 };
-
+const getAllSuperAdmin = async (req: Request, res: Response) => {
+  try {
+    const superAdmin = await SuperAdminModel.find();
+    return res.status(200).json({
+      success: true,
+      message: "SuperAdmin Details",
+      data: superAdmin,
+    });
+  } catch (error) {
+    console.log(error);
+    handleMongoError(error, res);
+  }
+};
 export const superAdminController = {
   register,
   login,
   rechargeCoin,
   getSuperAdminById,
+  getAllSuperAdmin,
 };
