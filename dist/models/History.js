@@ -29,6 +29,7 @@ var PurchaseType;
 (function (PurchaseType) {
     PurchaseType["SELL"] = "sell";
     PurchaseType["BUY"] = "buy";
+    PurchaseType["WITHDRAW"] = "withdraw";
 })(PurchaseType || (exports.PurchaseType = PurchaseType = {}));
 var Status;
 (function (Status) {
@@ -52,7 +53,7 @@ exports.HistorySchema = new mongoose_1.default.Schema({
         type: String,
         enum: Object.values(PurchaseType),
     },
-    coin: { type: Number, required: true },
+    coin: { type: Number, required: false },
     status: {
         type: String,
         enum: Object.values(Status),
@@ -60,6 +61,7 @@ exports.HistorySchema = new mongoose_1.default.Schema({
     YohoId: { type: String },
     amount: { type: Number, required: false },
     phoneNumber: { type: Number, required: false },
+    upiId: { type: String, required: false },
 }, { timestamps: true, versionKey: false });
 const HistoryModel = mongoose_1.default.model("History", exports.HistorySchema);
 exports.default = HistoryModel;

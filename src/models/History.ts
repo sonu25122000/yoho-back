@@ -3,6 +3,7 @@ import mongoose, { Schema } from "mongoose";
 export enum PurchaseType {
   SELL = "sell",
   BUY = "buy",
+  WITHDRAW = "withdraw",
 }
 export enum Status {
   APPROVED = "approved",
@@ -19,6 +20,7 @@ export interface HistoryDocument extends mongoose.Document {
   fullName: string;
   phoneNumber: number;
   amount: number;
+  upiId: string;
 }
 
 export const HistorySchema = new mongoose.Schema(
@@ -38,7 +40,7 @@ export const HistorySchema = new mongoose.Schema(
       type: String,
       enum: Object.values(PurchaseType),
     },
-    coin: { type: Number, required: true },
+    coin: { type: Number, required: false },
     status: {
       type: String,
       enum: Object.values(Status),
@@ -46,6 +48,7 @@ export const HistorySchema = new mongoose.Schema(
     YohoId: { type: String },
     amount: { type: Number, required: false },
     phoneNumber: { type: Number, required: false },
+    upiId: { type: String, required: false },
   },
   { timestamps: true, versionKey: false }
 );

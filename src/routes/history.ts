@@ -6,7 +6,12 @@ const router = express.Router();
 router.get("/", historyController.getHistory);
 router.get("/today-sell", authenticateToken, historyController.getTodaysSell);
 router.get("/monthly-sell", historyController.getMonthlySell);
-
+// approveWithDraw
+router.patch(
+  "/approveWithdraw/:id",
+  authenticateToken,
+  historyController.approveWithDraw
+);
 router.patch(
   "/approve/:id",
   authenticateToken,

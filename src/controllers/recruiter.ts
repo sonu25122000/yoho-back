@@ -333,7 +333,7 @@ const sellRecharge = async (req: Request, res: Response) => {
 const withDrawCommission = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { amountToWithDraw } = req.body;
+    const { amountToWithDraw, upiId } = req.body;
     if (!isValidObjectId(id)) {
       return res.status(400).json({
         success: false,
@@ -347,15 +347,24 @@ const withDrawCommission = async (req: Request, res: Response) => {
         message: "Recruiter Not Found.",
       });
     }
-    if (amountToWithDraw > recruiter.commision) {
+    const history = new HistoryModel({
+      coin: amountToWithDraw,
+      purchaseType: PurchaseType.WITHDRAW,
+      status: Status.PENDING,
+      recruiterID: recruiter._id,
+      amount: (CoinValue * +amountToWithDraw).toFixed(2),
+      upiId,
+    });
+    if (amountToWithDraw > recruiter.unlockCommission) {
       return res.status(400).json({
         success: false,
-        message: "Insufficient amount to withDraw.",
+        message:
+          "Insufficient amount to withDraw.only unlockCommission you can withdraw.",
       });
     }
-    recruiter.commision -= amountToWithDraw;
-    recruiter.coin += amountToWithDraw;
+
     await recruiter.save();
+    await history.save();
     return res.status(200).json({
       success: true,
       message: "Commission WithDraw Successfully.",

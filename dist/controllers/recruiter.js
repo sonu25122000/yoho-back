@@ -340,7 +340,7 @@ const sellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 const withDrawCommission = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const { amountToWithDraw } = req.body;
+        const { amountToWithDraw, upiId } = req.body;
         if (!(0, mongoose_1.isValidObjectId)(id)) {
             return res.status(400).json({
                 success: false,
@@ -354,15 +354,22 @@ const withDrawCommission = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 message: "Recruiter Not Found.",
             });
         }
-        if (amountToWithDraw > recruiter.commision) {
+        const history = new History_1.default({
+            coin: amountToWithDraw,
+            purchaseType: History_1.PurchaseType.WITHDRAW,
+            status: History_1.Status.PENDING,
+            recruiterID: recruiter._id,
+            amount: (coinJson_1.CoinValue * +amountToWithDraw).toFixed(2),
+            upiId,
+        });
+        if (amountToWithDraw > recruiter.unlockCommission) {
             return res.status(400).json({
                 success: false,
-                message: "Insufficient amount to withDraw.",
+                message: "Insufficient amount to withDraw.only unlockCommission you can withdraw.",
             });
         }
-        recruiter.commision -= amountToWithDraw;
-        recruiter.coin += amountToWithDraw;
         yield recruiter.save();
+        yield history.save();
         return res.status(200).json({
             success: true,
             message: "Commission WithDraw Successfully.",

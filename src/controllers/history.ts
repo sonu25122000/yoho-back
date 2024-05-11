@@ -341,6 +341,52 @@ const getMonthlySell = async (req: Request, res: Response) => {
   }
 };
 
+const approveWithDraw = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { amountToWithDraw, recruiterID } = req.body;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Provided ID is not valid",
+      });
+    }
+    const recruiter = await RecruiterModel.findById(recruiterID);
+    if (!recruiter) {
+      return res.status(404).json({
+        success: false,
+        message: "Recruiter Not Found",
+      });
+    }
+    const history = await HistoryModel.findById(id);
+    if (!history) {
+      return res.status(404).json({
+        success: false,
+        message: "History Not Found",
+      });
+    }
+    if (amountToWithDraw > recruiter.unlockCommission) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Insufficient amount to withDraw.only unlockCommission you can withdraw.",
+      });
+    }
+    recruiter.unlockCommission -= amountToWithDraw;
+    recruiter.totalCommissionEarned -= amountToWithDraw;
+    history.status = Status.APPROVED;
+    await recruiter.save();
+    await history.save();
+    return res.status(200).json({
+      success: false,
+      message: "WithDraw commission Request Approved",
+    });
+  } catch (error) {
+    console.log("error while with draw the commission", error);
+    handleMongoError(error, res);
+  }
+};
+
 export const historyController = {
   getHistory,
   approvRecharge,
@@ -349,4 +395,5 @@ export const historyController = {
   rejectSellRecharge,
   getTodaysSell,
   getMonthlySell,
+  approveWithDraw,
 };

@@ -10,6 +10,8 @@ const router = express_1.default.Router();
 router.get("/", history_1.historyController.getHistory);
 router.get("/today-sell", auth_middleware_1.authenticateToken, history_1.historyController.getTodaysSell);
 router.get("/monthly-sell", history_1.historyController.getMonthlySell);
+// approveWithDraw
+router.patch("/approveWithdraw/:id", auth_middleware_1.authenticateToken, history_1.historyController.approveWithDraw);
 router.patch("/approve/:id", auth_middleware_1.authenticateToken, history_1.historyController.approvRecharge);
 router.patch("/reject/:id", auth_middleware_1.authenticateToken, history_1.historyController.rejectRecharge);
 router.patch("/approveSellRecharge/:id", auth_middleware_1.authenticateToken, history_1.historyController.approveSellRecharge);

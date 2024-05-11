@@ -344,6 +344,51 @@ const getMonthlySell = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(500).json({ message: "Internal server error" });
     }
 });
+const approveWithDraw = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const { amountToWithDraw, recruiterID } = req.body;
+        if (!(0, mongoose_1.isValidObjectId)(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Provided ID is not valid",
+            });
+        }
+        const recruiter = yield Recruiter_1.default.findById(recruiterID);
+        if (!recruiter) {
+            return res.status(404).json({
+                success: false,
+                message: "Recruiter Not Found",
+            });
+        }
+        const history = yield History_1.default.findById(id);
+        if (!history) {
+            return res.status(404).json({
+                success: false,
+                message: "History Not Found",
+            });
+        }
+        if (amountToWithDraw > recruiter.unlockCommission) {
+            return res.status(400).json({
+                success: false,
+                message: "Insufficient amount to withDraw.only unlockCommission you can withdraw.",
+            });
+        }
+        recruiter.unlockCommission -= amountToWithDraw;
+        recruiter.totalCommissionEarned -= amountToWithDraw;
+        history.status = History_1.Status.APPROVED;
+        yield recruiter.save();
+        yield history.save();
+        return res.status(200).json({
+            success: false,
+            message: "WithDraw commission Request Approved",
+        });
+    }
+    catch (error) {
+        console.log("error while with draw the commission", error);
+        (0, handleMongoError_1.handleMongoError)(error, res);
+    }
+});
 exports.historyController = {
     getHistory,
     approvRecharge,
@@ -352,4 +397,5 @@ exports.historyController = {
     rejectSellRecharge,
     getTodaysSell,
     getMonthlySell,
+    approveWithDraw,
 };
