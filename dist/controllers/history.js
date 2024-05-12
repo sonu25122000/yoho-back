@@ -113,8 +113,8 @@ const approvRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         // Update user's coin balance
         recruiter.coin += coin;
-        // added commssion earned coin in total commsion for recruiter
-        recruiter.totalCommissionEarned += totalCoinEarned;
+        // added commssion earned coin in total commsion
+        recruiter.totalCommissionEarned += Number(totalCoinEarned.toFixed(2));
         history.status = History_1.Status.APPROVED;
         // Save changes to admin and user
         yield admin.save();
@@ -195,13 +195,15 @@ const approveSellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, func
         // Fetch the admin from the database
         // Fetch the user from the database
         const recruiter = yield Recruiter_1.default.findById(recruiterID).session(session);
+        console.log(recruiter);
         if (!recruiter) {
             return res
                 .status(404)
                 .json({ success: false, error: "recruiter not found" });
         }
         // Validate admin's updated coin balance
-        if (recruiter.coin && (recruiter.coin < 0 || recruiter.coin < coin)) {
+        if (recruiter.coin < 0 || recruiter.coin < coin) {
+            console.log("================");
             yield session.abortTransaction();
             session.endSession();
             return res.status(400).json({
@@ -374,8 +376,8 @@ const approveWithDraw = (req, res) => __awaiter(void 0, void 0, void 0, function
                 message: "Insufficient amount to withDraw.only unlockCommission you can withdraw.",
             });
         }
-        recruiter.unlockCommission -= amountToWithDraw;
-        recruiter.totalCommissionEarned -= amountToWithDraw;
+        recruiter.unlockCommission -= amountToWithDraw.toFixed(2);
+        recruiter.totalCommissionEarned -= amountToWithDraw.toFixed(2);
         history.status = History_1.Status.APPROVED;
         yield recruiter.save();
         yield history.save();

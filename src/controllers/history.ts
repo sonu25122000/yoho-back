@@ -86,8 +86,8 @@ const approvRecharge = async (req: Request, res: Response) => {
     // Update user's coin balance
     recruiter.coin += coin;
 
-    // added commssion earned coin in total commsion for recruiter
-    recruiter.totalCommissionEarned += totalCoinEarned;
+    // added commssion earned coin in total commsion
+    recruiter.totalCommissionEarned += Number(totalCoinEarned.toFixed(2));
     history.status = Status.APPROVED;
 
     // Save changes to admin and user
@@ -178,13 +178,15 @@ const approveSellRecharge = async (req: Request, res: Response) => {
     const recruiter = await RecruiterModel.findById(recruiterID).session(
       session
     );
+    console.log(recruiter);
     if (!recruiter) {
       return res
         .status(404)
         .json({ success: false, error: "recruiter not found" });
     }
     // Validate admin's updated coin balance
-    if (recruiter.coin && (recruiter.coin < 0 || recruiter.coin < coin)) {
+    if (recruiter.coin < 0 || recruiter.coin < coin) {
+      console.log("================");
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
@@ -372,8 +374,8 @@ const approveWithDraw = async (req: Request, res: Response) => {
           "Insufficient amount to withDraw.only unlockCommission you can withdraw.",
       });
     }
-    recruiter.unlockCommission -= amountToWithDraw;
-    recruiter.totalCommissionEarned -= amountToWithDraw;
+    recruiter.unlockCommission -= amountToWithDraw.toFixed(2);
+    recruiter.totalCommissionEarned -= amountToWithDraw.toFixed(2);
     history.status = Status.APPROVED;
     await recruiter.save();
     await history.save();

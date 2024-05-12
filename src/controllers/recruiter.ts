@@ -297,7 +297,7 @@ const recharge = async (req: Request, res: Response) => {
 const sellRecharge = async (req: Request, res: Response) => {
   try {
     // recruiter id
-    const { YohoId, coin, id, fullName, phoneNumber } = req.body;
+    const { YohoId, coin, id, note } = req.body;
     const recruiter = await RecruiterModel.findById(id);
 
     if (!recruiter) {
@@ -306,15 +306,21 @@ const sellRecharge = async (req: Request, res: Response) => {
         message: "Recruiter not found.",
       });
     }
+    if (recruiter.coin < 0 || recruiter.coin < coin) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient coins in Recruiter account",
+      });
+    }
+
     const addHistory = new HistoryModel({
       recruiterID: recruiter._id,
       purchaseType: PurchaseType.SELL,
       status: Status.PENDING,
       coin: coin,
       YohoId,
-      fullName,
+      note,
       amount: (CoinValue * coin).toFixed(2),
-      phoneNumber,
     });
     recruiter.rechargeStatus = Status.PENDING;
 

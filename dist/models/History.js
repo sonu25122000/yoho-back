@@ -58,6 +58,7 @@ exports.HistorySchema = new mongoose_1.default.Schema({
         type: String,
         enum: Object.values(Status),
     },
+    note: { type: String, required: false },
     YohoId: { type: String },
     amount: { type: Number, required: false },
     phoneNumber: { type: Number, required: false },

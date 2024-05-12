@@ -306,12 +306,18 @@ const recharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 const sellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // recruiter id
-        const { YohoId, coin, id, fullName, phoneNumber } = req.body;
+        const { YohoId, coin, id, note } = req.body;
         const recruiter = yield Recruiter_1.default.findById(id);
         if (!recruiter) {
             return res.status(404).json({
                 success: false,
                 message: "Recruiter not found.",
+            });
+        }
+        if (recruiter.coin < 0 || recruiter.coin < coin) {
+            return res.status(400).json({
+                success: false,
+                message: "Insufficient coins in Recruiter account",
             });
         }
         const addHistory = new History_1.default({
@@ -320,9 +326,8 @@ const sellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             status: History_1.Status.PENDING,
             coin: coin,
             YohoId,
-            fullName,
+            note,
             amount: (coinJson_1.CoinValue * coin).toFixed(2),
-            phoneNumber,
         });
         recruiter.rechargeStatus = History_1.Status.PENDING;
         yield addHistory.save();

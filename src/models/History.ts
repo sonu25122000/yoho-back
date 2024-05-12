@@ -21,6 +21,7 @@ export interface HistoryDocument extends mongoose.Document {
   phoneNumber: number;
   amount: number;
   upiId: string;
+  note: string;
 }
 
 export const HistorySchema = new mongoose.Schema(
@@ -45,6 +46,7 @@ export const HistorySchema = new mongoose.Schema(
       type: String,
       enum: Object.values(Status),
     },
+    note: { type: String, required: false },
     YohoId: { type: String },
     amount: { type: Number, required: false },
     phoneNumber: { type: Number, required: false },
