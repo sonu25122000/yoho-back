@@ -197,7 +197,7 @@ const approveSellRecharge = async (req: Request, res: Response) => {
     // if (recruiter.coin) {
     recruiter.coin -= coin;
     const commision = (+coin * recruiter.commision) / 100;
-    recruiter.unlockCommission += commision;
+    recruiter.unlockCommission += Number(commision.toFixed(2));
     // }
 
     // Update user's coin balance
