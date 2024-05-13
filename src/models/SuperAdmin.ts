@@ -6,6 +6,7 @@ export interface SuperAdminDocument extends mongoose.Document {
   email: string;
   password: string;
   coin: number;
+  pin: number;
 }
 
 export const SuperAdminSchema = new mongoose.Schema(
@@ -16,6 +17,7 @@ export const SuperAdminSchema = new mongoose.Schema(
     password: { type: String, required: true },
     phoneNumber: { type: String, required: true, unique: true },
     coin: { type: Number, default: 0 },
+    pin: { type: Number, required: false, default: null },
   },
   { timestamps: true }
 );
