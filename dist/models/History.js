@@ -63,6 +63,7 @@ exports.HistorySchema = new mongoose_1.default.Schema({
     amount: { type: Number, required: false },
     phoneNumber: { type: Number, required: false },
     upiId: { type: String, required: false },
+    remark: { type: String, required: false },
 }, { timestamps: true, versionKey: false });
 const HistoryModel = mongoose_1.default.model("History", exports.HistorySchema);
 exports.default = HistoryModel;

@@ -138,7 +138,7 @@ const rejectRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         // history id
         const { id } = req.params;
-        const { recruiterID } = req.body;
+        const { recruiterID, remark } = req.body;
         if (!(0, mongoose_1.isValidObjectId)(id)) {
             return res.status(400).json({
                 success: false,
@@ -159,6 +159,7 @@ const rejectRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 .json({ success: false, error: "recruiter not found" });
         }
         history.status = History_1.Status.RJECTED;
+        history.remark = remark;
         recruiter.rechargeStatus = History_1.Status.RJECTED;
         // Save changes to admin and user
         yield recruiter.save();
@@ -203,7 +204,6 @@ const approveSellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, func
         }
         // Validate admin's updated coin balance
         if (recruiter.coin < 0 || recruiter.coin < coin) {
-            console.log("================");
             yield session.abortTransaction();
             session.endSession();
             return res.status(400).json({

@@ -114,7 +114,7 @@ const rejectRecharge = async (req: Request, res: Response) => {
   try {
     // history id
     const { id } = req.params;
-    const { recruiterID } = req.body;
+    const { recruiterID, remark } = req.body;
     if (!isValidObjectId(id)) {
       return res.status(400).json({
         success: false,
@@ -137,6 +137,7 @@ const rejectRecharge = async (req: Request, res: Response) => {
     }
 
     history.status = Status.RJECTED;
+    history.remark = remark;
     recruiter.rechargeStatus = Status.RJECTED;
     // Save changes to admin and user
     await recruiter.save();
@@ -186,7 +187,6 @@ const approveSellRecharge = async (req: Request, res: Response) => {
     }
     // Validate admin's updated coin balance
     if (recruiter.coin < 0 || recruiter.coin < coin) {
-      console.log("================");
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({

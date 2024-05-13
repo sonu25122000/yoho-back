@@ -22,6 +22,7 @@ export interface HistoryDocument extends mongoose.Document {
   amount: number;
   upiId: string;
   note: string;
+  remark: string;
 }
 
 export const HistorySchema = new mongoose.Schema(
@@ -51,6 +52,7 @@ export const HistorySchema = new mongoose.Schema(
     amount: { type: Number, required: false },
     phoneNumber: { type: Number, required: false },
     upiId: { type: String, required: false },
+    remark: { type: String, required: false },
   },
   { timestamps: true, versionKey: false }
 );
