@@ -16,6 +16,7 @@ router.post("/login",
 // authenticateToken,
 // authenticateToken,
 recruiter_1.reCruiterController.login);
+router.patch("/change-recruiter-password", recruiter_1.reCruiterController.changePasswordForUser);
 router.patch("/:id", auth_middleware_1.authenticateToken, recruiter_1.reCruiterController.updateRecruiter);
 router.patch("/change-password/:id", recruiter_2.validateChangePassword, auth_middleware_1.authenticateToken, recruiter_1.reCruiterController.changePassword);
 router.put("/deactivate/:id", auth_middleware_1.authenticateToken, recruiter_1.reCruiterController.deactivatedRecruiter);

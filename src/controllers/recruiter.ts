@@ -297,7 +297,7 @@ const recharge = async (req: Request, res: Response) => {
 const sellRecharge = async (req: Request, res: Response) => {
   try {
     // recruiter id
-    const { YohoId, coin, id, note } = req.body;
+    const { YohoId, coin, id, note, amount } = req.body;
     const recruiter = await RecruiterModel.findById(id);
 
     if (!recruiter) {
@@ -320,7 +320,7 @@ const sellRecharge = async (req: Request, res: Response) => {
       coin: coin,
       YohoId,
       note,
-      amount: (CoinValue * coin).toFixed(2),
+      amount,
     });
     recruiter.rechargeStatus = Status.PENDING;
 
@@ -382,6 +382,42 @@ const withDrawCommission = async (req: Request, res: Response) => {
   }
 };
 
+const changePasswordForUser = async (req: Request, res: Response) => {
+  try {
+    const { oldPassword, newPassword, id } = req.body;
+    // Find user by email
+    const user = await RecruiterModel.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Recruiter not found",
+      });
+    }
+
+    // Verify current password
+    const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!passwordMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Old Password",
+      });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Update user's password in the database
+    user.password = hashedPassword;
+    await user.save();
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    console.error("Error changing password:", error);
+    handleMongoError(error, res);
+  }
+};
+
 export const reCruiterController = {
   register,
   login,
@@ -394,4 +430,5 @@ export const reCruiterController = {
   recharge,
   sellRecharge,
   withDrawCommission,
+  changePasswordForUser,
 };

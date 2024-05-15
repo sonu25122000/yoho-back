@@ -25,6 +25,10 @@ router.post(
   // authenticateToken,
   reCruiterController.login
 );
+router.patch(
+  "/change-recruiter-password",
+  reCruiterController.changePasswordForUser
+);
 router.patch("/:id", authenticateToken, reCruiterController.updateRecruiter);
 router.patch(
   "/change-password/:id",
@@ -32,6 +36,7 @@ router.patch(
   authenticateToken,
   reCruiterController.changePassword
 );
+
 router.put(
   "/deactivate/:id",
   authenticateToken,

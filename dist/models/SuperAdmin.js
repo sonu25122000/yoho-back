@@ -12,6 +12,7 @@ exports.SuperAdminSchema = new mongoose_1.default.Schema({
     password: { type: String, required: true },
     phoneNumber: { type: String, required: true, unique: true },
     coin: { type: Number, default: 0 },
+    pin: { type: Number, required: false, default: null },
 }, { timestamps: true });
 const SuperAdminModel = mongoose_1.default.model("SuperAdmin", exports.SuperAdminSchema);
 exports.default = SuperAdminModel;

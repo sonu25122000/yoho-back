@@ -306,7 +306,7 @@ const recharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 const sellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // recruiter id
-        const { YohoId, coin, id, note } = req.body;
+        const { YohoId, coin, id, note, amount } = req.body;
         const recruiter = yield Recruiter_1.default.findById(id);
         if (!recruiter) {
             return res.status(404).json({
@@ -327,7 +327,7 @@ const sellRecharge = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             coin: coin,
             YohoId,
             note,
-            amount: (coinJson_1.CoinValue * coin).toFixed(2),
+            amount,
         });
         recruiter.rechargeStatus = History_1.Status.PENDING;
         yield addHistory.save();
@@ -386,6 +386,40 @@ const withDrawCommission = (req, res) => __awaiter(void 0, void 0, void 0, funct
         (0, handleMongoError_1.handleMongoError)(error, res);
     }
 });
+const changePasswordForUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { oldPassword, newPassword, id } = req.body;
+        // Find user by email
+        const user = yield Recruiter_1.default.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Recruiter not found",
+            });
+        }
+        // Verify current password
+        const passwordMatch = yield bcryptjs_1.default.compare(oldPassword, user.password);
+        if (!passwordMatch) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Old Password",
+            });
+        }
+        // Hash the new password
+        const hashedPassword = yield bcryptjs_1.default.hash(newPassword, 10);
+        // Update user's password in the database
+        user.password = hashedPassword;
+        yield user.save();
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully",
+        });
+    }
+    catch (error) {
+        console.error("Error changing password:", error);
+        (0, handleMongoError_1.handleMongoError)(error, res);
+    }
+});
 exports.reCruiterController = {
     register,
     login,
@@ -398,4 +432,5 @@ exports.reCruiterController = {
     recharge,
     sellRecharge,
     withDrawCommission,
+    changePasswordForUser,
 };
