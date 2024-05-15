@@ -149,10 +149,51 @@ const getAllSuperAdmin = async (req: Request, res: Response) => {
     handleMongoError(error, res);
   }
 };
+
+const changePassword = async (req: Request, res: Response) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const { userId } = req.body.user;
+    // Find user by email
+    const user = await SuperAdminModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "SuperAdmin Not Found",
+      });
+    }
+
+    // Verify current password
+    const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!passwordMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Old Password",
+      });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Update user's password in the database
+    user.password = hashedPassword;
+    await user.save();
+
+    // Send success response
+    return res.status(200).json({
+      success: true,
+      message: "Password Changed Successfully",
+    });
+  } catch (error) {
+    console.error("Error changing password:", error);
+    handleMongoError(error, res);
+  }
+};
+
 export const superAdminController = {
   register,
   login,
   rechargeCoin,
   getSuperAdminById,
   getAllSuperAdmin,
+  changePassword,
 };

@@ -8,6 +8,11 @@ const router = express.Router();
 router.post("/register", superAdminController.register);
 router.post("/login", superAdminController.login);
 router.patch(
+  "/change-password",
+  authenticateToken,
+  superAdminController.changePassword
+);
+router.patch(
   "/recharge/:id",
   validateRecharge,
   authenticateToken,
